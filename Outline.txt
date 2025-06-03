@@ -1,0 +1,34 @@
+I want to build a day trading Ai that will trade on its own
+
+
+This is a huge task that needs to be broken down into categories:
+Building the model with understanding of day trading
+Being able to get the ai to interact with the interface of the trader
+Building a LLM or model that has deep knowledge of what to look for
+I want to feed it information about the market from the week before so that it is more accurate 
+I want to be able to see that this has a real change on the decision making
+Need to find the strategy of trading 
+
+
+Outline:
+
+Performace goals: Target Daily Return -> 2%
+                Maximum Drawdown -> start at 5% then 10%
+
+Lets start with ETF -> less information for the model to analyze and we can chose which later
+
+
+
+Chatgpt Outline:
+Primary objective: make consistent small profits via intraday ETF trading. Assets: a handful of ETFs and a few individual stocks to gather dense data. Frequency: 5–10 trades per trading day using 1- to 5-minute bars, 
+intraday only. Data source: yfinance for 1-minute price and volume; any additional fundamental or specialized metrics provided as needed. Features: all major technical indicators (e.g., 20 EMA, 50 SMA, RSI, MACD, VWAP, ATR, volume spikes) 
+plus any supplied fundamental metrics. Strategy: reinforcement learning agent learns buy/hold/sell decisions based on price patterns. Actions: discrete choices to buy one share/contract, hold, or sell one share/contract; no variable sizing. 
+State: full feature vector at each decision step, including all relevant indicators and metrics. Reward: net profit from each completed trade (sell price minus buy price minus fees), scaled by time held, with extra penalty for large losses. 
+Risk constraints: never risk more than 5% of capital on a single trade; only one unit per trade; otherwise open to options. 
+Success metrics: primary metric is total net return over a rolling one-month period; secondary metrics include win/loss ratio, maximum drawdown, and average PnL per trade. Compute resources: MacBook Pro with M2 chip for prototyping and a desktop with Intel i9 and NVIDIA RTX 4070 GPU for intensive RL training and backtesting. 
+Broker integration: Alpaca in paper-trading mode initially; AI may send 5–20 orders per day as it decides. 
+Timeline: prototype ready within one week; target profitability within one month. No personal time constraints. 
+Transaction cost model: assume $0.005 per share fee and 0.05% slippage in both backtest and RL simulation.
+ Model retraining cadence: weekly retraining using the latest five days of data, with potential to increase to daily if needed. 
+ Logging and monitoring: detailed logs of every trade (timestamp, action, state vector, reward, slippage, net PnL); real-time dashboard for positions, PnL, and equity curve. 
+ Version control: use Git to track code; tag each RL model with a unique identifier and archive training metadata (hyperparameters, performance metrics, dataset dates) for reproducibility. Information needed: final list of ETF and stock tickers; confirmation of any additional data sources; exact transaction cost assumptions; Alpaca API keys and account setup details; desired historical backtest window (e.g., Jan 2018–Dec 2024); specific parameters for large-loss penalties (e.g., threshold and scaling); reward-shaping preferences for time-held scaling; and reporting format requirements (e.g., weekly CSV exports, PDF summaries, or dashboard alerts).
