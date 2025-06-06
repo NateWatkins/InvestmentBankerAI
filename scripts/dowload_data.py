@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timedelta
 
 # --- CONFIGURE ---
-TICKERS = ['SPY']            # list of ETFs or stocks
+TICKERS = ['NVDA']            # list of ETFs or stocks
 INTERVAL = '1m'              # 1-minute bars
 LOOKBACK_DAYS = 5            # how many days back to fetch
 RAW_DIR = os.path.join('data', 'raw')

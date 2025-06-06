@@ -17,6 +17,20 @@ Performace goals: Target Daily Return -> 2%
 
 Lets start with ETF -> less information for the model to analyze and we can chose which later
 
+Feed in policies
+
+Multiple days in the past
+earning to price ratio
+Focus on high risk stocks 
+
+Profit Margin ratio -> See over time how much the stock should be going up
+
+
+
+Initial public offering -> Finding when a company releases it's stocks
+
+Options:  
+
 
 
 Chatgpt Outline:
