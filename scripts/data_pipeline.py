@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 def load_trading_dataframe(
-    ticker: str = "SPY",
+    ticker: str = "TSLA",
     raw_dir: str = "data/raw",
     feature_dir: str = "data/features",
     news_dir: str = "data/news",

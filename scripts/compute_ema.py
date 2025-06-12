@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 # --- CONFIGURE ---
-TICKERS = ['SPY']
+TICKERS = ['TSLA']
 RAW_DIR = os.path.join('data', 'raw')
 FEATURE_DIR = os.path.join('data', 'features')
 EMA_PERIOD = 20

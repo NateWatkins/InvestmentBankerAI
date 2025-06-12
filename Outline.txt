@@ -46,3 +46,12 @@ Transaction cost model: assume $0.005 per share fee and 0.05% slippage in both b
  Model retraining cadence: weekly retraining using the latest five days of data, with potential to increase to daily if needed. 
  Logging and monitoring: detailed logs of every trade (timestamp, action, state vector, reward, slippage, net PnL); real-time dashboard for positions, PnL, and equity curve. 
  Version control: use Git to track code; tag each RL model with a unique identifier and archive training metadata (hyperparameters, performance metrics, dataset dates) for reproducibility. Information needed: final list of ETF and stock tickers; confirmation of any additional data sources; exact transaction cost assumptions; Alpaca API keys and account setup details; desired historical backtest window (e.g., Jan 2018–Dec 2024); specific parameters for large-loss penalties (e.g., threshold and scaling); reward-shaping preferences for time-held scaling; and reporting format requirements (e.g., weekly CSV exports, PDF summaries, or dashboard alerts).
+
+
+
+
+ What works:
+ fetch_finnhub_flair.py 
+ fetch_finnhub_vader.py 
+ compute_ema.py 
+ 
