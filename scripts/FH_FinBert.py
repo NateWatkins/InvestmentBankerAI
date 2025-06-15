@@ -9,7 +9,7 @@ import torch
 # --- CONFIGURE ---
 FINNHUB_KEY = "d0v4m71r01qmg3uk7fo0d0v4m71r01qmg3uk7fog"
 TICKER = "TSLA"
-NEWS_DIR = os.path.join("data", "news")
+NEWS_DIR = "/Users/natwat/Desktop/CPSC_Projects/Trader/data/news"
 OUTPUT_CSV = os.path.join(NEWS_DIR, f"{TICKER}_finbert_sentiment.csv")
 
 # Initialize FinBERT
