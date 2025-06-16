@@ -1,6 +1,6 @@
 import numpy as np
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 
 class TradingEnv(gym.Env):
     def __init__(self, df, window_size, feature_columns):
@@ -22,11 +22,12 @@ class TradingEnv(gym.Env):
             dtype=np.float32
         )
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         self.current_step = self.window_size
         self.position = 0
         self.total_reward = 0
-        return self._get_obs()
+        obs = self._get_obs()
+        return obs, {}
 
     def _get_obs(self):
         obs = self.df[self.feature_columns].iloc[
@@ -37,6 +38,7 @@ class TradingEnv(gym.Env):
     def step(self, action):
         reward = 0
         done = False
+        truncated = False
 
         price_now = self.df["Close"].iloc[self.current_step]
         price_prev = self.df["Close"].iloc[self.current_step - 1]
@@ -54,6 +56,8 @@ class TradingEnv(gym.Env):
 
         if self.current_step >= len(self.df):
             done = True
+            truncated = True
             self.episode_rewards.append(self.total_reward)
 
-        return self._get_obs(), reward, done, {}
+        obs = self._get_obs()
+        return obs, reward, done, truncated, {}

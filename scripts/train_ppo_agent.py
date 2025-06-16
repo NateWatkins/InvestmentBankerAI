@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
-from scripts.envs.trading_env import TradingEnv
+from envs.trading_env import TradingEnv
 
 
 
