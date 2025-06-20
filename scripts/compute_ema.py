@@ -26,10 +26,14 @@ if __name__ == '__main__':
             raw_path,
             skiprows=2,
             names=['Datetime', 'Close', 'High', 'Low', 'Open', 'Volume'],
-            parse_dates=['Datetime'],
-            index_col='Datetime',
-            infer_datetime_format=True
+            parse_dates=['Datetime']
         )
+
+        if "Datetime" not in df.columns:
+            raise KeyError("Column 'Datetime' not found in file after parsing.")
+
+        df.set_index("Datetime", inplace=True)
+
 
         # Now compute the EMA on the 'Close' column
         df_feat = compute_ema(df, EMA_PERIOD)

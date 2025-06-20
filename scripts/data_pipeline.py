@@ -30,7 +30,7 @@ def load_trading_dataframe(
     frames = []
 
     # Feature file (e.g. EMA columns)
-    feat_path = os.path.join(feature_dir, f"{ticker}_features.csv")
+    feat_path = "/Users/natwat/Desktop/CPSC_Projects/Trader/data/features"
     df_feat = pd.read_csv(feat_path, parse_dates=["Datetime"], index_col="Datetime")
     frames.append(df_feat)
 

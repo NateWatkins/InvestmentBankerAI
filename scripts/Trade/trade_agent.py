@@ -19,8 +19,8 @@ api = tradeapi.REST(
 )
 
 # --- Config ---
-MODEL_PATH = "model/ppo_tsla_agent.zip"
-FEATURE_CSV = "data/features/TSLA_features_full.csv"
+MODEL_PATH = "/Users/natwat/Desktop/CPSC_Projects/Trader/model/ppo_tsla_agent"
+FEATURE_CSV = "/Users/natwat/Desktop/CPSC_Projects/Trader/data/features/TSLA_features_full.csv"
 WINDOW_SIZE = 10
 SYMBOL = "TSLA"
 SLEEP_INTERVAL = 60  # seconds
@@ -32,10 +32,18 @@ model = PPO.load(MODEL_PATH)
 # --- Track position and last seen data ---
 position = 0  # 0 = no position, 1 = long
 last_timestamp = None
-
+notebook_path = "/Users/natwat/Desktop/CPSC_Projects/Trader/scripts/Data_manager.ipynb"
 print(f"[{datetime.now()}] ✅ Trading agent started for {SYMBOL}")
+import subprocess
 
 while True:
+    
+# --- Run Data_manager notebook --
+    
+    subprocess.run([
+        sys.executable, "-m", "nbconvert", "--to", "notebook", "--execute",
+        "--inplace", notebook_path
+    ], check=True)
     try:
         df = pd.read_csv(FEATURE_CSV, parse_dates=["Datetime"]).dropna()
         df = df.sort_values("Datetime")
