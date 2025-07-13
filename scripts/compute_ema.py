@@ -3,8 +3,8 @@ import os
 
 # --- CONFIGURE ---
 TICKERS = ['TSLA']
-RAW_DIR = "/Users/natwat/Desktop/CPSC_Projects/Trader/data/raw"
-FEATURE_DIR = '/Users/natwat/Desktop/CPSC_Projects/Trader/data/features'
+RAW_DIR = "/Users/natwat/Desktop/CPSC_Projects/INVBANKAI/data/raw"
+FEATURE_DIR = '/Users/natwat/Desktop/CPSC_Projects/INVBANKAI/data/features'
 EMA_PERIOD = 20
 
 def compute_ema(df, period):
@@ -32,12 +32,11 @@ if __name__ == '__main__':
         if "Datetime" not in df.columns:
             raise KeyError("Column 'Datetime' not found in file after parsing.")
 
-        df.set_index("Datetime", inplace=True)
-
-
         # Now compute the EMA on the 'Close' column
         df_feat = compute_ema(df, EMA_PERIOD)
+        df_feat = df_feat.reset_index() if df_feat.index.name == "Datetime" else df_feat  # Ensures 'Datetime' is a column
 
         out_path = os.path.join(FEATURE_DIR, f'{ticker}_features.csv')
-        df_feat.to_csv(out_path)
+        df_feat.to_csv(out_path, index=False)  # index=False so 'Datetime' is a column, not the index
         print(f'Saved features for {ticker} → {out_path}')
+

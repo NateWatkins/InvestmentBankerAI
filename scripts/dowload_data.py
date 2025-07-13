@@ -20,13 +20,13 @@ def download_1min_bars(ticker, start, end):
     return df
 
 if __name__ == '__main__':
-    os.makedirs("/Users/natwat/Desktop/CPSC_Projects/Trader/data/raw", exist_ok=True)
+    os.makedirs("/Users/natwat/Desktop/CPSC_Projects/INVBANKAI/data/raw", exist_ok=True)
     end_date = datetime.now() + timedelta(days=1)  # make end inclusive
     start_date = end_date - timedelta(days=LOOKBACK_DAYS + 1)
     for ticker in TICKERS:
         df = download_1min_bars(ticker, start_date, end_date)
         df.index = df.index.tz_convert("UTC")  # ensure consistency with sentiment data
         # ensure directory exists
-        out_path = os.path.join("/Users/natwat/Desktop/CPSC_Projects/Trader/data/raw", f'{ticker}_raw.csv')
+        out_path = os.path.join("/Users/natwat/Desktop/CPSC_Projects/INVBANKAI/data/raw", f'{ticker}_raw.csv')
         df.to_csv(out_path)
         print(f'Saved raw data for {ticker} → {out_path}')

@@ -81,7 +81,7 @@ class TradingEnv(gym.Env):
 
 # --- Argument Parser ---
 parser = argparse.ArgumentParser()
-parser.add_argument("--data", type=str, default="data/features/TSLA_features_full.csv", help="Path to training dataset")
+parser.add_argument("--data", type=str, default="data/final/TSLA_ready.csv", help="Path to training dataset")
 parser.add_argument("--model", type=str, default="model/ppo_tsla_agent", help="Path to save/load model")
 parser.add_argument("--timesteps", type=int, default=50000, help="Total timesteps for training")
 args = parser.parse_args()

@@ -32,99 +32,96 @@ def load_and_aggregate_sentiment(csv_path, resample_interval='1min'):
 
 
     
-def merge_with_price(sentiment_df, price_path, output_path):
-    """
-    Merges upsampled sentiment data (1-minute resolution) with minute-level price data.
+import pandas as pd
+import os
 
-    Args:
-        sentiment_df (pd.DataFrame): Aggregated sentiment with datetime column.
-        price_path (str): Path to price/technical indicator CSV.
-        output_path (str): File to write merged dataset to.
+def full_merge(sentiment_df, price_path, output_path=None):
     """
-    # --- Load and prep price data ---
+    Merge full price and sentiment datasets, matching on 1-min UTC 'Datetime'.
+    Forward-fills sentiment. Price is always the anchor.
+    """
+    # --- Load and standardize price data ---
     price_df = pd.read_csv(price_path)
-    date_col = next((col for col in price_df.columns if "date" in col.lower() or "time" in col.lower()), None)
-    if not date_col:
-        raise ValueError("No datetime column found in price CSV.")
+    price_df['Datetime'] = pd.to_datetime(price_df['Datetime'], utc=True, errors='coerce')
+    price_df = price_df.dropna(subset=['Datetime'])
+    price_df = price_df.sort_values('Datetime').drop_duplicates('Datetime')
 
-    price_df[date_col] = pd.to_datetime(price_df[date_col])
-    price_df.rename(columns={date_col: "Datetime"}, inplace=True)
-    price_df["Datetime"] = price_df["Datetime"].dt.tz_localize(None)
+    # --- Standardize sentiment data ---
+    sentiment_df['Datetime'] = pd.to_datetime(sentiment_df['Datetime'], utc=True, errors='coerce')
+    sentiment_df = sentiment_df.dropna(subset=['Datetime'])
+    sentiment_df = sentiment_df.sort_values('Datetime').drop_duplicates('Datetime')
 
-    # --- Prep and upsample sentiment ---
-    sentiment_df["Datetime"] = pd.to_datetime(sentiment_df["Datetime"])
-    sentiment_df["Datetime"] = sentiment_df["Datetime"].dt.tz_localize(None)
-    sentiment_df = sentiment_df.set_index("Datetime").resample("1min").ffill().reset_index()
+    # --- Forward-fill sentiment for all price times ---
+    sentiment_ff = sentiment_df.set_index('Datetime').reindex(price_df['Datetime']).ffill().reset_index()
+    sentiment_ff.rename(columns={'index': 'Datetime'}, inplace=True)  # Defensive; rarely needed
 
-    # --- Merge ---
-    df = pd.merge(price_df, sentiment_df, on="Datetime", how="left")
+    # --- Merge price and sentiment ---
+    merged = price_df.merge(sentiment_ff, on='Datetime', how='left', suffixes=('', '_sent'))
 
-    # --- Add return + label ---
-    df["Return"] = df["Close"].pct_change().shift(-1)
-    df["Label"] = (df["Return"] > 0).astype(int)
+    # --- Add label columns ---
+    merged['Return'] = merged['Close'].pct_change().shift(-1)
+    merged['Label'] = (merged['Return'] > 0).astype(int)
 
-    # --- Save ---
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    df.to_csv(output_path, index=False)
-    print(f"✅ Merged minute-level dataset saved to {output_path}")
-def merge_with_price_incremental(sentiment_df, price_path, output_path, last_timestamp=None):
+    # --- Save and return ---
+    if output_path:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        merged.to_csv(output_path, index=False)
+        print(f"✅ Saved merged data to {output_path}")
+
+    return merged
+
+
+
+def full_incremental_merge(sentiment_df, price_path, output_path):
     """
-    Incrementally merges 1min price and sentiment data, forward-filling sentiment.
-    Appends only new rows to `output_path`.
+    Incrementally append new price/sentiment rows to an existing merged file.
+    Only rows with price['Datetime'] > last in output_path are processed.
     """
-
-    # --- Load price data ---
+    # --- Load and standardize price data ---
     price_df = pd.read_csv(price_path)
-    date_col = next((c for c in price_df.columns if "date" in c.lower() or "time" in c.lower()), None)
-    if not date_col:
-        raise ValueError("No datetime column found in price CSV.")
-    price_df[date_col] = pd.to_datetime(price_df[date_col], utc=True)
-    price_df.rename(columns={date_col: "Datetime"}, inplace=True)
+    price_df['Datetime'] = pd.to_datetime(price_df['Datetime'], utc=True, errors='coerce')
+    price_df = price_df.dropna(subset=['Datetime'])
+    price_df = price_df.sort_values('Datetime').drop_duplicates('Datetime')
 
-    # --- Load sentiment and standardize timezone ---
-    sentiment_df["Datetime"] = pd.to_datetime(sentiment_df["Datetime"], utc=True)
-    sentiment_df = sentiment_df.set_index("Datetime")
+    # --- Standardize sentiment data ---
+    sentiment_df['Datetime'] = pd.to_datetime(sentiment_df['Datetime'], utc=True, errors='coerce')
+    sentiment_df = sentiment_df.dropna(subset=['Datetime'])
+    sentiment_df = sentiment_df.sort_values('Datetime').drop_duplicates('Datetime')
 
-    # --- If previous full dataset exists, get last timestamp ---
+    # --- Load existing output, if any ---
     if os.path.exists(output_path):
-        existing_df = pd.read_csv(output_path, parse_dates=["Datetime"])
-        existing_df["Datetime"] = pd.to_datetime(existing_df["Datetime"], utc=True)
-        if last_timestamp is None:
-            last_timestamp = existing_df["Datetime"].max()
-        price_df = price_df[price_df["Datetime"] > last_timestamp]
+        existing_df = pd.read_csv(output_path)
+        existing_df['Datetime'] = pd.to_datetime(existing_df['Datetime'], utc=True, errors='coerce')
+        last_ts = existing_df['Datetime'].max()
+        # Only keep new price data
+        new_price_df = price_df[price_df['Datetime'] > last_ts]
     else:
         existing_df = None
+        new_price_df = price_df.copy()
 
-    if price_df.empty:
+    if new_price_df.empty:
         print("⏸️ No new price data to merge.")
+        return existing_df if existing_df is not None else None
 
-        # Create full timestamp range based on price_df
-    full_range = pd.date_range(start=price_df["Datetime"].min(),
-                            end=price_df["Datetime"].max(),
-                            freq="1min",
-                            tz="UTC")
+    # --- Forward-fill sentiment for new price times ---
+    sentiment_ff = sentiment_df.set_index('Datetime').reindex(new_price_df['Datetime']).ffill().reset_index()
+    sentiment_ff.rename(columns={'index': 'Datetime'}, inplace=True)
 
-    # Reindex sentiment_df to include all timestamps — then forward-fill
-    sentiment_filled = sentiment_df.set_index("Datetime").reindex(full_range).ffill()
+    # --- Merge new price and sentiment ---
+    merged = new_price_df.merge(sentiment_ff, on='Datetime', how='left', suffixes=('', '_sent'))
 
-    # Only keep timestamps that exist in price_df (ensures clean merge)
-    sentiment_filled = sentiment_filled.loc[price_df["Datetime"]].reset_index()
-    sentiment_filled.rename(columns={"index": "Datetime"}, inplace=True)
+    # --- Add label columns ---
+    merged['Return'] = merged['Close'].pct_change().shift(-1)
+    merged['Label'] = (merged['Return'] > 0).astype(int)
 
-
-
-    # --- Merge and compute labels ---
-    merged = pd.merge(price_df, sentiment_filled, on="Datetime", how="inner")
-    merged["Return"] = merged["Close"].pct_change().shift(-1)
-    merged["Label"] = (merged["Return"] > 0).astype(int)
-
-    # --- Append to full dataset ---
+    # --- Concatenate with previous, dedupe, sort ---
     if existing_df is not None:
-        final_df = pd.concat([existing_df, merged]).drop_duplicates(subset=["Datetime"]).sort_values("Datetime")
+        final_df = pd.concat([existing_df, merged], ignore_index=True)
+        final_df = final_df.drop_duplicates(subset=['Datetime']).sort_values('Datetime')
     else:
         final_df = merged
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     final_df.to_csv(output_path, index=False)
     print(f"✅ Appended {len(merged)} new rows → {output_path}")
-
+    return final_df
