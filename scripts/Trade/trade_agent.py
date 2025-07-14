@@ -9,7 +9,7 @@ import alpaca_trade_api as tradeapi
 from stable_baselines3 import PPO
 
 # --- Load .env ---
-load_dotenv(dotenv_path="/Users/natwat/Desktop/CPSC_Projects/Trader/env/.env")
+load_dotenv(dotenv_path="/Users/natwat/Desktop/CPSC_Projects/InvBankAI/env/.env")
 
 # --- Alpaca Setup ---
 api = tradeapi.REST(
@@ -19,8 +19,8 @@ api = tradeapi.REST(
 )
 
 # --- Config ---
-MODEL_PATH = "/Users/natwat/Desktop/CPSC_Projects/Trader/model/ppo_tsla_agent"
-FEATURE_CSV = "/Users/natwat/Desktop/CPSC_Projects/Trader/data/features/TSLA_features_full.csv"
+MODEL_PATH = "/Users/natwat/Desktop/CPSC_Projects/InvBankAI/model/ppo_tsla_agent.zip"
+FEATURE_CSV = "/Users/natwat/Desktop/CPSC_Projects/InvBankAI/data/features/TSLA_features_full.csv"
 WINDOW_SIZE = 10
 SYMBOL = "TSLA"
 SLEEP_INTERVAL = 60  # seconds
@@ -32,7 +32,7 @@ model = PPO.load(MODEL_PATH)
 # --- Track position and last seen data ---
 position = 0  # 0 = no position, 1 = long
 last_timestamp = None
-notebook_path = "/Users/natwat/Desktop/CPSC_Projects/Trader/scripts/Data_manager.ipynb"
+notebook_path = "/Users/natwat/Desktop/CPSC_Projects/InvBankAI/scripts/Data_manager.ipynb"
 print(f"[{datetime.now()}] ✅ Trading agent started for {SYMBOL}")
 import subprocess
 

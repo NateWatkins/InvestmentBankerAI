@@ -24,9 +24,9 @@ POLYGON_KEY = os.getenv("POLYGON_API_KEY", "maJATpmcBQDmp40WauaZhtVaK2UvBmC3")
 TICKER = "TSLA"
 NEWS_DIR = "data/news"
 OUTPUT_CSV = os.path.join(NEWS_DIR, f"{TICKER}_sentiment_combined.csv")
-LOOKBACK_DAYS = 5
+LOOKBACK_DAYS = 7
 BATCH_SIZE = 10  # For model inference
-MAX_TEXT_LEN = 512  # Truncate to avoid OOM
+MAX_TEXT_LEN = 1028  # Truncate to avoid OOM
 RATE_LIMIT_DELAY = 0.5  # Seconds between API calls if paginating
 LAST_FETCH_FILE = os.path.join(NEWS_DIR, f"{TICKER}_last_fetch.txt")  # For incremental
 
@@ -142,7 +142,7 @@ def main(start_date=None, end_date=None, incremental=True):
             last_fetch = int(f.read().strip())
         start_unix = last_fetch + 1  # Start just after last
     else:
-        start_unix = int((now_utc - timedelta(days=LOOKBACK_DAYS)).timestamp())
+        start_unix = int((now_utc - timedelta(days=LOOKBACK_DAYS)).timestamp() - 1) 
 
     if start_date:
         start_unix = int(datetime.fromisoformat(start_date).timestamp())

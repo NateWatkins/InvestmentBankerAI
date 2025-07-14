@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 # --- CONFIGURE ---
 TICKERS = ['TSLA']            # list of ETFs or stocks
 INTERVAL = '1m'              # 1-minute bars
-LOOKBACK_DAYS = 5        # how many days back to fetch
+LOOKBACK_DAYS = 7        # how many days back to fetch
 
 def download_1min_bars(ticker, start, end):
     df = yf.download(

@@ -7,7 +7,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 import sys
 sys.path.append("scripts")
-from train_ppo_agent_logged import TradingEnv
+from envs.train_ppo_agent_logged import TradingEnv
 
 # --- Load Trading Data ---
 def load_trading_data(path: str) -> pd.DataFrame:
@@ -53,8 +53,8 @@ def plot_performance(env):
 # --- Main Execution ---
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="data/features/TSLA_features_full.csv")
-    parser.add_argument("--model", type=str, default="/Users/natwat/Desktop/CPSC_Projects/Trader/model/ppo_tsla_agent")
+    parser.add_argument("--data", type=str, default="/Users/natwat/Desktop/CPSC_Projects/InvBankAI/data/features/TSLA_features_full.csv")
+    parser.add_argument("--model", type=str, default="/Users/natwat/Desktop/CPSC_Projects/InvBankAI/model/ppo_tsla_agent.zip")
     parser.add_argument("--plot", action="store_true", help="Plot net worth over time")
     args = parser.parse_args()
 
