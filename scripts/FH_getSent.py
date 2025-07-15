@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
@@ -11,6 +12,10 @@ import logging
 import re
 import argparse
 
+# Add project root to path for config import
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_ticker, get_paths
+
 # --- Setup Logging ---
 logging.basicConfig(
     level=logging.INFO,
@@ -21,14 +26,15 @@ logger = logging.getLogger(__name__)
 
 # --- CONFIGURE (Defaults) ---
 POLYGON_KEY = os.getenv("POLYGON_API_KEY", "maJATpmcBQDmp40WauaZhtVaK2UvBmC3")
-TICKER = "TSLA"
-NEWS_DIR = "data/news"
-OUTPUT_CSV = os.path.join(NEWS_DIR, f"{TICKER}_sentiment_combined.csv")
+TICKER = get_ticker()  # Get from config
+PATHS = get_paths()  # Get all paths from config
+NEWS_DIR = PATHS["news_dir"]
+OUTPUT_CSV = PATHS["sentiment_combined"]
 LOOKBACK_DAYS = 7
 BATCH_SIZE = 10  # For model inference
 MAX_TEXT_LEN = 1028  # Truncate to avoid OOM
 RATE_LIMIT_DELAY = 0.5  # Seconds between API calls if paginating
-LAST_FETCH_FILE = os.path.join(NEWS_DIR, f"{TICKER}_last_fetch.txt")  # For incremental
+LAST_FETCH_FILE = PATHS["last_fetch"]  # For incremental
 
 # --- Load Models (with device auto-detection) ---
 device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
@@ -220,6 +226,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Robust Sentiment Fetcher")
     parser.add_argument("--start", type=str, help="Start date (ISO8601)")
     parser.add_argument("--end", type=str, help="End date (ISO8601)")
+    parser.add_argument("--ticker", type=str, help="Ticker symbol (e.g., TSLA, AAPL, NVDA)")
     parser.add_argument("--no-incremental", action="store_false", dest="incremental", help="Disable incremental fetch")
     args = parser.parse_args()
+    
+    # Update ticker if provided
+    if args.ticker:
+        from config import set_ticker
+        set_ticker(args.ticker)
+        # Update global variables
+        TICKER = get_ticker()
+        PATHS = get_paths()
+        NEWS_DIR = PATHS["news_dir"]
+        OUTPUT_CSV = PATHS["sentiment_combined"]
+        LAST_FETCH_FILE = PATHS["last_fetch"]
+    
     main(args.start, args.end, args.incremental)

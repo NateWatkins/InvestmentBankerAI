@@ -7,9 +7,14 @@ from datetime import datetime
 from dotenv import load_dotenv
 import alpaca_trade_api as tradeapi
 from stable_baselines3 import PPO
+import argparse
+
+# Add project root to path for config import
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import get_ticker, get_paths, Config
 
 # --- Load .env ---
-load_dotenv(dotenv_path="/Users/natwat/Desktop/CPSC_Projects/InvBankAI/env/.env")
+load_dotenv(dotenv_path=Config.ENV_PATH)
 
 # --- Alpaca Setup ---
 api = tradeapi.REST(
@@ -19,12 +24,14 @@ api = tradeapi.REST(
 )
 
 # --- Config ---
-MODEL_PATH = "/Users/natwat/Desktop/CPSC_Projects/InvBankAI/model/ppo_tsla_agent.zip"
-FEATURE_CSV = "/Users/natwat/Desktop/CPSC_Projects/InvBankAI/data/features/TSLA_features_full.csv"
-WINDOW_SIZE = 10
-SYMBOL = "TSLA"
-SLEEP_INTERVAL = 60  # seconds
-DROP_COLS = ["Datetime", "Return_1min"]
+TICKER = get_ticker()  # Get from config
+PATHS = get_paths()    # Get all paths from config
+MODEL_PATH = PATHS["model_zip"]
+FEATURE_CSV = PATHS["features_full_csv"]
+WINDOW_SIZE = Config.WINDOW_SIZE
+SYMBOL = TICKER
+SLEEP_INTERVAL = Config.SLEEP_INTERVAL
+DROP_COLS = Config.DROP_COLS
 
 # --- Load Model ---
 model = PPO.load(MODEL_PATH)
@@ -32,18 +39,45 @@ model = PPO.load(MODEL_PATH)
 # --- Track position and last seen data ---
 position = 0  # 0 = no position, 1 = long
 last_timestamp = None
-notebook_path = "/Users/natwat/Desktop/CPSC_Projects/InvBankAI/scripts/Data_manager.ipynb"
+notebook_path = os.path.join(Config.PROJECT_ROOT, "scripts", "Data_manager.ipynb")
 print(f"[{datetime.now()}] ✅ Trading agent started for {SYMBOL}")
 import subprocess
 
-while True:
+def main():
+    parser = argparse.ArgumentParser(description="Live trading agent")
+    parser.add_argument("--ticker", type=str, help="Ticker symbol (e.g., TSLA, AAPL, NVDA)")
+    parser.add_argument("--model", type=str, help="Path to model file")
+    parser.add_argument("--data", type=str, help="Path to features CSV")
+    args = parser.parse_args()
     
+    # Update configuration if ticker provided
+    if args.ticker:
+        from config import set_ticker
+        set_ticker(args.ticker)
+        global TICKER, PATHS, MODEL_PATH, FEATURE_CSV, SYMBOL
+        TICKER = get_ticker()
+        PATHS = get_paths()
+        MODEL_PATH = args.model or PATHS["model_zip"]
+        FEATURE_CSV = args.data or PATHS["features_full_csv"]
+        SYMBOL = TICKER
+    
+    # Load Model
+    model = PPO.load(MODEL_PATH)
+    
+    # Track position and last seen data
+    position = 0  # 0 = no position, 1 = long
+    last_timestamp = None
+    
+    print(f"[{datetime.now()}] ✓ Trading agent started for {SYMBOL}")
+    
+    while True:
+        
 # --- Run Data_manager notebook --
-    
-    subprocess.run([
-        sys.executable, "-m", "nbconvert", "--to", "notebook", "--execute",
-        "--inplace", notebook_path
-    ], check=True)
+        
+        subprocess.run([
+            sys.executable, "-m", "nbconvert", "--to", "notebook", "--execute",
+            "--inplace", notebook_path
+        ], check=True)
     try:
         df = pd.read_csv(FEATURE_CSV, parse_dates=["Datetime"]).dropna()
         df = df.sort_values("Datetime")
@@ -81,9 +115,12 @@ while True:
             position = 0
             print("💰 SELL executed")
 
-        last_timestamp = latest_time
-        time.sleep(SLEEP_INTERVAL)
+            last_timestamp = latest_time
+            time.sleep(SLEEP_INTERVAL)
 
-    except Exception as e:
-        print(f"[{datetime.now()}] ❌ Error: {e}")
-        time.sleep(SLEEP_INTERVAL)
+        except Exception as e:
+            print(f"[{datetime.now()}] ❌ Error: {e}")
+            time.sleep(SLEEP_INTERVAL)
+
+if __name__ == "__main__":
+    main()

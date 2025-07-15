@@ -1,4 +1,10 @@
 import pandas as pd
+import sys
+import os
+
+# Add project root to path for config import
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_ticker
 
 def aggregate_sentiment_by_minute(df: pd.DataFrame, model_name: str) -> pd.DataFrame:
     df["Datetime"] = pd.to_datetime(df["Datetime"], utc=True, format="ISO8601").dt.floor("min")
@@ -16,7 +22,7 @@ def aggregate_sentiment_by_minute(df: pd.DataFrame, model_name: str) -> pd.DataF
         return ["negative", "neutral", "positive"][probs.index(max(probs))]
 
     agg["Sentiment"] = agg.apply(label_sentiment, axis=1)
-    agg["Ticker"] = "TSLA"
+    agg["Ticker"] = get_ticker()  # Use configurable ticker
 
     agg = agg.rename(columns={
         "Prob_Positive": f"Prob_Pos_{model_name}",

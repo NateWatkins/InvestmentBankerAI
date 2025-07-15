@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import pandas as pd
 import gym
@@ -8,6 +9,10 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.monitor import Monitor
 import gymnasium as gym
 from gymnasium import spaces
+
+# Add project root to path for config import
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import get_ticker, get_paths, Config
 
 # --- Custom Trading Environment ---
 
@@ -81,22 +86,33 @@ class TradingEnv(gym.Env):
 
 # --- Argument Parser ---
 parser = argparse.ArgumentParser()
-parser.add_argument("--data", type=str, default="data/final/TSLA_ready.csv", help="Path to training dataset")
-parser.add_argument("--model", type=str, default="model/ppo_tsla_agent", help="Path to save/load model")
+parser.add_argument("--ticker", type=str, help="Ticker symbol (e.g., TSLA, AAPL, NVDA)")
+parser.add_argument("--data", type=str, help="Path to training dataset")
+parser.add_argument("--model", type=str, help="Path to save/load model")
 parser.add_argument("--timesteps", type=int, default=50000, help="Total timesteps for training")
 args = parser.parse_args()
 
+# Update ticker if provided
+if args.ticker:
+    from config import set_ticker
+    set_ticker(args.ticker)
+
+# Get paths from config
+PATHS = get_paths()
+data_path = args.data or PATHS["ready_csv"]
+model_path = args.model or PATHS["model_path"]
+
 # --- Load Data ---
-df = pd.read_csv(args.data, parse_dates=["Datetime"])
+df = pd.read_csv(data_path, parse_dates=["Datetime"])
 df = df.dropna().reset_index(drop=True)
 
 # --- Setup Env ---
 env = DummyVecEnv([lambda: Monitor(TradingEnv(df))])
 
 # --- Load or Initialize Model ---
-if os.path.exists(args.model + ".zip"):
+if os.path.exists(model_path + ".zip"):
     print("🔁 Continuing training from previous model...")
-    model = PPO.load(args.model, env=env)
+    model = PPO.load(model_path, env=env)
 else:
     print("🆕 Training new model from scratch...")
     model = PPO("MlpPolicy", env, verbose=1)
@@ -105,6 +121,6 @@ else:
 model.learn(total_timesteps=args.timesteps)
 
 # --- Save Model ---
-os.makedirs(os.path.dirname(args.model), exist_ok=True)
-model.save(args.model)
-print(f"✅ Model saved to {args.model}")
+os.makedirs(os.path.dirname(model_path), exist_ok=True)
+model.save(model_path)
+print(f"✅ Model saved to {model_path}")
