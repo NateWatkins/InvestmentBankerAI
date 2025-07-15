@@ -10,8 +10,8 @@ class Config:
     """Central configuration class for the trading system."""
     
     # --- Core Trading Configuration ---
-    TICKER: str = "AAPL"  # Primary ticker symbol to trade
-    TICKERS: List[str] = ["AAPL"]  # List of tickers (for potential multi-asset support)
+    TICKER: str = "TSLA"  # Primary ticker symbol to trade
+    TICKERS: List[str] = ["TSLA"]  # List of tickers (for potential multi-asset support)
     
     # --- Project Paths ---
     PROJECT_ROOT: str = "/Users/natwat/Desktop/CPSC_Projects/InvBankAI"

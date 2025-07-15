@@ -9,6 +9,9 @@ import argparse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import get_ticker, get_paths, Config
 
+# Import the simple archiver
+from simple_archiver import archive_file
+
 # --- CONFIGURE ---
 TICKER = get_ticker()        # Get from config
 TICKERS = [TICKER]           # list of ETFs or stocks
@@ -56,3 +59,6 @@ if __name__ == '__main__':
         out_path = get_paths(ticker)["raw_csv"]
         df.to_csv(out_path)
         print(f'Saved raw data for {ticker} → {out_path}')
+        
+        # Archive the raw data file we just created (ONE simple line added!)
+        archive_file(out_path)

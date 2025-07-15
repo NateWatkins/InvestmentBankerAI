@@ -1,0 +1,22 @@
+# Enhanced Sentiment Analysis Requirements
+# Install with: pip install -r requirements_enhanced.txt
+
+# Core dependencies (already in use)
+pandas>=1.5.0
+numpy>=1.21.0
+requests>=2.28.0
+torch>=1.12.0
+transformers>=4.20.0
+pytz>=2022.1
+scikit-learn>=1.1.0
+
+# New dependencies for enhanced sentiment analysis
+tweepy>=4.14.0        # Twitter API v2
+praw>=7.6.0           # Reddit API
+textblob>=0.17.1      # Additional sentiment analysis
+yfinance>=0.2.10      # Company name lookup
+
+# Optional dependencies for visualization and analysis
+matplotlib>=3.5.0     # For plotting sentiment trends
+seaborn>=0.11.0       # Enhanced plotting
+plotly>=5.10.0        # Interactive charts

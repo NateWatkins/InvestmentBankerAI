@@ -2,6 +2,12 @@
 
 import os
 import pandas as pd
+import numpy as np
+
+# Import the simple archiver (add this to any script you want to archive files from)
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from simple_archiver import archive_file
 
 def load_and_aggregate_sentiment(csv_path, resample_interval='1min'):
     """
@@ -16,7 +22,15 @@ def load_and_aggregate_sentiment(csv_path, resample_interval='1min'):
     if "Datetime" not in df.columns:
         raise ValueError("Missing 'Datetime' column.")
 
-    df = df.groupby("Datetime", as_index=True).mean()
+    # Only aggregate numeric columns, preserve first value for non-numeric
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    non_numeric_cols = df.select_dtypes(exclude=[np.number]).columns.drop('Datetime')
+    
+    # Aggregate numeric columns with mean, non-numeric with first
+    agg_dict = {col: 'mean' for col in numeric_cols}
+    agg_dict.update({col: 'first' for col in non_numeric_cols})
+    
+    df = df.groupby("Datetime", as_index=True).agg(agg_dict)
     df = df.resample(resample_interval).ffill()
 
     sentiment_cols = [col for col in df.columns if col.startswith("Prob_Pos_") or col.startswith("Prob_Neu_") or col.startswith("Prob_Neg_")]
@@ -55,6 +69,9 @@ def full_merge(sentiment_df, price_path, output_path=None):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         merged.to_csv(output_path, index=False)
         print(f"✅ Saved merged data to {output_path}")
+        
+        # Archive the file we just created (ONE simple line added!)
+        archive_file(output_path)
 
     return merged
 
@@ -103,4 +120,8 @@ def full_incremental_merge(sentiment_df, price_path, output_path):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     final_df.to_csv(output_path, index=False)
     print(f"✅ Appended {len(merged)} new rows → {output_path}")
+    
+    # Archive the updated file (ONE simple line added!)
+    archive_file(output_path)
+    
     return final_df
